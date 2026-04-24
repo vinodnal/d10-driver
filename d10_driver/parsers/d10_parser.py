@@ -93,17 +93,26 @@ class D10Parser(BaseParser):
             elif record_type == RECORD_PATIENT:
                 current_patient = self._parse_patient(raw_record)
                 message.patients.append(current_patient)
-                log.info("Patient parsed: %s", current_patient)
+                log.info(
+                    "Patient record #%d parsed.", current_patient.sequence_number
+                )
 
             elif record_type == RECORD_ORDER:
                 current_order = self._parse_order(raw_record)
                 message.orders.append(current_order)
-                log.info("Order parsed: %s", current_order)
+                log.info(
+                    "Order record #%d parsed.", current_order.sequence_number
+                )
 
             elif record_type == RECORD_RESULT:
                 result = self._parse_result(raw_record)
                 message.results.append(result)
-                log.info("Result parsed: %s", result)
+                log.info(
+                    "Result record #%d parsed — analyte=%s status=%s",
+                    result.sequence_number,
+                    result.analyte_name,
+                    result.result_status,
+                )
 
             elif record_type == RECORD_TERMINATOR:
                 self._parse_terminator(raw_record, message)
