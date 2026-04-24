@@ -171,7 +171,7 @@ uv run --group dev pytest tests/ -v
 
 Runtime dependencies (declared in `pyproject.toml`, pinned in `uv.lock`):
 - pyserial ≥ 3.5
-- mysql-connector-python ≥ 8.0, < 9
+- mysql-connector-python ≥ 9.1.0, ≤ 9.6.0
 - PyYAML ≥ 6.0
 - click ≥ 8.1
 - tabulate ≥ 0.9
