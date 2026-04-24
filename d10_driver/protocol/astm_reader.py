@@ -323,7 +323,6 @@ class ASTMReader:
             log.warning("Frame number mismatch: expected %d, got %d", expected_fn, fn)
 
         # Validate checksum
-        cs_input = bytes([fn_byte]) + bytes(raw_data) + bytes([terminator])
         cs_ok = verify_checksum(fn, bytes(raw_data), terminator, received_cs)
 
         text = raw_data.decode("ascii", errors="replace")

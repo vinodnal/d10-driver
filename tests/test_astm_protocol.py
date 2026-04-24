@@ -10,7 +10,6 @@ Covers:
 
 from __future__ import annotations
 
-import io
 import unittest
 
 from d10_driver.protocol.astm_constants import (
@@ -23,59 +22,8 @@ from d10_driver.protocol.astm_writer import ASTMWriter
 
 
 # ---------------------------------------------------------------------------
-# In-memory transport mock
+# Transport mocks
 # ---------------------------------------------------------------------------
-
-
-class _LoopbackTransport:
-    """Simple in-memory byte buffer that acts as both the reader and writer.
-
-    Bytes written to the transport via :meth:`write` are immediately
-    available for reading via :meth:`read`.  This allows us to test the
-    reader and writer end-to-end without real hardware.
-    """
-
-    def __init__(self, initial: bytes = b"") -> None:
-        self._buf = bytearray(initial)
-
-    def read(self, n: int) -> bytes:
-        data = bytes(self._buf[:n])
-        self._buf = self._buf[n:]
-        return data
-
-    def write(self, data: bytes) -> None:
-        self._buf.extend(data)
-
-    @property
-    def remaining(self) -> bytes:
-        return bytes(self._buf)
-
-
-# ---------------------------------------------------------------------------
-# Helper to build a valid ASTM frame sequence
-# ---------------------------------------------------------------------------
-
-
-def _make_valid_astm_stream(payload: str) -> bytes:
-    """Build a minimal valid ASTM E1381 byte stream for *payload*.
-
-    The resulting stream contains:
-    ENQ | frame(s) | EOT
-
-    Each frame is correctly checksummed.  The caller must not forget that
-    the ASTMReader will send ACK bytes after ENQ and after each frame —
-    but since we're testing with a mock that we directly read from, we
-    pre-insert those ACKs as if the *writer* side already received them.
-
-    Because ASTMReader.receive_message() waits for ENQ, reads frames,
-    and waits for EOT, we build the stream the instrument would send.
-    The host side's ACK bytes are NOT in this stream — they are sent by the
-    reader via transport.write(), which goes into the same loopback buffer.
-    We handle this by splitting reader/writer buffers in the test setup.
-    """
-    # We'll use a different approach: pre-populate the "instrument→host"
-    # direction only, using a DirectedTransport below.
-    raise NotImplementedError("Use DirectedTransport in tests")
 
 
 class _DirectedTransport:
@@ -102,6 +50,11 @@ class _DirectedTransport:
     def sent_to_instrument(self) -> bytes:
         """Bytes the driver sent back toward the instrument."""
         return bytes(self._tx)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
 def _build_frame_bytes(fn: int, data: bytes, is_last: bool) -> bytes:
@@ -152,7 +105,6 @@ class TestComputeChecksum(unittest.TestCase):
 
     def test_zero_result(self):
         """A zero checksum should format as '00'."""
-        # bytes with value 0 → sum 0 → checksum '00'
         self.assertEqual(compute_checksum(bytes([0])), "00")
 
     def test_single_byte(self):
@@ -228,19 +180,16 @@ class TestASTMWriterBuildFrame(unittest.TestCase):
         }
 
     def test_last_frame_uses_etx(self):
-        from d10_driver.protocol.astm_writer import ASTMWriter
         frame = ASTMWriter._build_frame(1, b"H|test", b"\x03")
         parsed = self._parse_frame(frame)
         self.assertEqual(parsed["terminator"], ETX_BYTE)
 
     def test_intermediate_frame_uses_etb(self):
-        from d10_driver.protocol.astm_writer import ASTMWriter
         frame = ASTMWriter._build_frame(2, b"data", b"\x17")
         parsed = self._parse_frame(frame)
         self.assertEqual(parsed["terminator"], ETB_BYTE)
 
     def test_checksum_is_correct(self):
-        from d10_driver.protocol.astm_writer import ASTMWriter
         data = b"R|1|^^^HBA1C|6.7|%"
         fn = 3
         frame = ASTMWriter._build_frame(fn, data, b"\x03")
@@ -251,13 +200,11 @@ class TestASTMWriterBuildFrame(unittest.TestCase):
         self.assertEqual(parsed["cs"], expected)
 
     def test_frame_ends_with_crlf(self):
-        from d10_driver.protocol.astm_writer import ASTMWriter
         frame = ASTMWriter._build_frame(1, b"x", b"\x03")
         self.assertEqual(frame[-2], CR_BYTE)
         self.assertEqual(frame[-1], LF_BYTE)
 
     def test_frame_number_is_embedded(self):
-        from d10_driver.protocol.astm_writer import ASTMWriter
         for fn in range(1, 8):
             frame = ASTMWriter._build_frame(fn, b"d", b"\x03")
             parsed = self._parse_frame(frame)
@@ -267,7 +214,7 @@ class TestASTMWriterBuildFrame(unittest.TestCase):
 class TestASTMReaderRoundTrip(unittest.TestCase):
     """End-to-end round-trip tests for :class:`ASTMReader`."""
 
-    def _make_transport(self, records: list[str]) -> "_DirectedTransport":
+    def _make_transport(self, records: list[str]) -> _DirectedTransport:
         stream = _build_astm_stream(records)
         return _DirectedTransport(stream)
 
@@ -293,7 +240,6 @@ class TestASTMReaderRoundTrip(unittest.TestCase):
         transport = self._make_transport(records)
         reader = ASTMReader(transport, ack_timeout=1.0)
         received = list(reader.receive_message())
-        # Should have all 5 records
         self.assertEqual(len(received), 5)
         result = next(r for r in received if r.startswith("R"))
         self.assertIn("HBA1C", result)
@@ -325,7 +271,6 @@ class TestMultiFrameMessage(unittest.TestCase):
 
     def test_long_payload_split_into_multiple_frames(self):
         """A payload > 240 bytes is correctly split and reassembled."""
-        # Create a result record long enough to exceed one frame
         long_value = "A" * 200
         records = [
             "H|\\^&|||D-10",

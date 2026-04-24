@@ -104,9 +104,10 @@ class TestASTMMessage(unittest.TestCase):
         self.assertIn("D-10", repr(msg))
 
     def test_received_at_defaults_to_now(self):
-        before = datetime.utcnow()
+        from datetime import timezone
+        before = datetime.now(timezone.utc).replace(tzinfo=None)
         msg = ASTMMessage()
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
         self.assertGreaterEqual(msg.received_at, before)
         self.assertLessEqual(msg.received_at, after)
 

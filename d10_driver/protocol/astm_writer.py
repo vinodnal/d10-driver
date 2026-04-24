@@ -86,8 +86,8 @@ class ASTMWriter:
         TimeoutError
             If no ACK/NAK is received within *ack_timeout* seconds.
         """
-        # Join all records with <CR>
-        payload = CR.decode() + CR.decode().join(records) + CR.decode()
+        # Join all records with <CR> — records separated by CR, no leading CR
+        payload = CR.decode().join(records) + CR.decode()
         frames = self._split_into_frames(payload.encode("ascii"))
 
         log.debug("Sending ENQ to initiate transmission…")

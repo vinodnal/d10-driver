@@ -84,7 +84,8 @@ class D10Parser(BaseParser):
                 continue
 
             record_type = raw_record[0]
-            log.debug("Parsing record type '%s': %r", record_type, raw_record[:80])
+            # Log only record type and length to avoid capturing patient data in logs
+            log.debug("Parsing record type '%s' (%d bytes)", record_type, len(raw_record))
 
             if record_type == RECORD_HEADER:
                 self._parse_header(raw_record, message)
@@ -150,10 +151,15 @@ class D10Parser(BaseParser):
         """
         f = lambda i: self.parse_field(record, i, FIELD_DELIMITER)
 
+        # ASTM E1394 Header fields (0-indexed):
+        # f(2) = Message Control ID (field 3)
+        # f(4) = Sender Name       (field 5)
+        # f(11) = Processing ID    (field 12)
+        # f(12) = ASTM Version     (field 13)
+        message.message_control_id = f(2) or None
         message.sender_name = f(4) or None
         message.processing_id = f(11) or None
         message.version = f(12) or None
-        message.message_control_id = f(13) or None
         log.debug(
             "Header: sender=%s processing_id=%s version=%s",
             message.sender_name,

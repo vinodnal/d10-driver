@@ -16,7 +16,7 @@ them easy to serialise, test, and reuse by other instrument drivers.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -246,8 +246,10 @@ class ASTMMessage:
     sends one patient per message).
     """
 
-    #: Date/time this message was received by the driver.
-    received_at: datetime = field(default_factory=datetime.utcnow)
+    #: Date/time this message was received by the driver (UTC).
+    received_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
 
     #: Raw sending facility identifier from the Header record (field 4).
     sender_name: Optional[str] = None
