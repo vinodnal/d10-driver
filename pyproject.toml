@@ -1,0 +1,34 @@
+[project]
+name = "d10-driver"
+version = "1.0.0"
+description = "Modular driver for the Bio-Rad D-10 hemoglobin analyzer using ASTM E1381/E1394 protocol."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "D10 Driver Project" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "pyserial>=3.5",
+    "mysql-connector-python>=8.0.0,<9",
+    "PyYAML>=6.0",
+    "click>=8.1.0",
+    "tabulate>=0.9.0",
+    "colorlog>=6.7.0",
+]
+
+[project.scripts]
+d10-driver = "d10_driver.main:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+]

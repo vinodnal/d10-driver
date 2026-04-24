@@ -8,10 +8,8 @@ dist/
 build/
 *.egg
 
-# Virtual environments
+# uv
 .venv/
-venv/
-env/
 
 # Testing & coverage
 .pytest_cache/

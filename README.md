@@ -49,9 +49,23 @@ The driver implements **ASTM E1381** (low-level framing) and **ASTM E1394** (hig
 
 ### 1. Install
 
+[uv](https://docs.astral.sh/uv/) is the project's package manager. Install it once, then sync the project:
+
 ```bash
-pip install -e .
+# Install uv (if not already installed)
+pip install uv          # or: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sync all runtime + dev dependencies into an isolated virtual environment
+uv sync --group dev
 ```
+
+For a runtime-only install (no test dependencies):
+
+```bash
+uv sync
+```
+
+The `d10-driver` CLI is automatically available inside the venv managed by uv.
 
 ### 2. Configure
 
@@ -63,40 +77,41 @@ cp config.yaml.example config.yaml
 ### 3. Initialise the database
 
 ```bash
-d10-driver init-db
+uv run d10-driver init-db
 ```
 
 ### 4. Start the driver
 
 ```bash
 # Serial port (default)
-d10-driver start
+uv run d10-driver start
 
 # Override port and baud rate
-d10-driver start --port /dev/ttyS0 --baud-rate 19200
+uv run d10-driver start --port /dev/ttyS0 --baud-rate 19200
 
 # TCP/IP transport (for instruments with Ethernet interface)
-d10-driver start --tcp-host 192.168.1.50 --tcp-port 5000
+uv run d10-driver start --tcp-host 192.168.1.50 --tcp-port 5000
 
 # Log-only mode (no database)
-d10-driver start --no-db
+uv run d10-driver start --no-db
 ```
 
 ### 5. Query results
 
 ```bash
 # By specimen ID
-d10-driver query --specimen-id SPEC001
+uv run d10-driver query --specimen-id SPEC001
 
 # By patient ID
-d10-driver query --patient-id PAT001
+uv run d10-driver query --patient-id PAT001
 ```
 
 ### 6. Show active configuration
 
 ```bash
-d10-driver show-config
+uv run d10-driver show-config
 ```
+
 
 ## Environment Variables
 
@@ -140,8 +155,7 @@ No other code changes are required.
 ## Running Tests
 
 ```bash
-pip install pytest
-python -m pytest tests/ -v
+uv run --group dev pytest tests/ -v
 ```
 
 ## Logging
@@ -153,9 +167,12 @@ python -m pytest tests/ -v
 ## Requirements
 
 - Python ≥ 3.9
+- [uv](https://docs.astral.sh/uv/) (manages all other dependencies)
+
+Runtime dependencies (declared in `pyproject.toml`, pinned in `uv.lock`):
 - pyserial ≥ 3.5
-- mysql-connector-python ≥ 8.0
+- mysql-connector-python ≥ 8.0, < 9
 - PyYAML ≥ 6.0
 - click ≥ 8.1
 - tabulate ≥ 0.9
-- colorlog ≥ 6.7 (optional, for coloured console output)
+- colorlog ≥ 6.7
