@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs (generated at runtime — not source code)
+logs/
+
+# Local configuration (may contain secrets)
+config.yaml
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp

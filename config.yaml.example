@@ -1,0 +1,70 @@
+# D10 Driver Configuration File
+# Copy this file to config.yaml and adjust the settings for your environment.
+
+# ---------------------------------------------------------------------------
+# Serial port settings (ASTM E1381 physical layer)
+# ---------------------------------------------------------------------------
+serial:
+  # Serial device path (Linux: /dev/ttyUSB0 or /dev/ttyS0; Windows: COM3)
+  port: /dev/ttyUSB0
+
+  # Baud rate — Bio-Rad D-10 default is 9600
+  baud_rate: 9600
+
+  # Number of data bits (must be 8 for ASTM compliance)
+  data_bits: 8
+
+  # Parity: N (none), E (even), O (odd) — D-10 default is N
+  parity: "N"
+
+  # Stop bits: 1 or 2 — D-10 default is 1
+  stop_bits: 1
+
+  # Read timeout in seconds for individual byte reads
+  timeout: 5
+
+  # Maximum seconds to wait for a complete ASTM message
+  read_timeout: 30
+
+# ---------------------------------------------------------------------------
+# MySQL database connection
+# ---------------------------------------------------------------------------
+database:
+  host: localhost
+  port: 3306
+  user: d10driver
+  password: ""          # Set via D10_DATABASE_PASSWORD env var in production
+  database: d10_results
+  pool_size: 5
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging:
+  # File log level: DEBUG captures everything (recommended for traceability)
+  level: DEBUG
+
+  # Console log level: INFO for day-to-day use, DEBUG for troubleshooting
+  console_level: INFO
+
+  # Directory where rotating log files are stored
+  log_dir: logs
+
+# ---------------------------------------------------------------------------
+# Driver behaviour
+# ---------------------------------------------------------------------------
+driver:
+  # Human-readable identifier for this instrument instance (stored in DB)
+  instrument_id: D10-001
+
+  # Automatically commit results to the database after each message
+  auto_commit: true
+
+  # Number of ASTM retransmission attempts on NAK before giving up
+  retry_attempts: 3
+
+  # Seconds to wait between retry attempts
+  retry_delay: 2
+
+  # Seconds to wait for ACK/NAK from the remote
+  ack_timeout: 10
